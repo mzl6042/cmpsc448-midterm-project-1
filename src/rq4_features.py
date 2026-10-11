@@ -153,6 +153,19 @@ def main():
     imp = sorted(zip(cols, pi.importances_mean), key=lambda x: -x[1])
     out["perm_importance"] = [(c, float(v)) for c, v in imp]
     print(imp[:10])
+    # a few specific habits we noticed while reading outputs, as % of responses per model
+    habits = {
+        "curly_apostrophe": df.llm_output.str.contains("’"),
+        "e.g.": df.llm_output.str.contains(r"e\.g\.", regex=True),
+        "great_question_opener": df.llm_output.str.match(r"\s*(what a|that's a|great|excellent) .{0,20}question", case=False),
+        "starts_with_list_or_bold": df.llm_output.str.match(r"\s*(\d+\.|\*|-|#)"),
+        "very_short_<20_words": df.llm_output.str.split().str.len() < 20,
+        "knowledge_cutoff_mention": df.llm_output.str.contains(r"(as of my|knowledge cutoff|last (trained|update))", case=False, regex=True),
+    }
+    H = pd.DataFrame(habits).astype(float)
+    H["llm_model"] = df.llm_model.values
+    (100 * H.groupby("llm_model").mean()).round(1).to_csv("results/rq4/habits_per_model.csv")
+    print((100 * H.groupby("llm_model").mean()).round(1))
     out["log_odds_words"] = log_odds(df[df.split != "test"])
     for f, ws in out["log_odds_words"].items():
         print(f, ws)

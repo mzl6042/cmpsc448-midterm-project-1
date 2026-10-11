@@ -9,6 +9,7 @@ matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+from matplotlib.ticker import MaxNLocator
 
 FAM = ["Claude", "GPT", "Google", "Llama", "Mistral", "Qwen"]
 C = {"cnn": "#0072B2", "lstm": "#D55E00", "tfidf": "#999999", "cross": "#D55E00", "in_domain": "#0072B2"}
@@ -64,7 +65,7 @@ ax.axhline(1 / 6, ls="--", c="k", lw=0.8)
 ax.text(2.45, 1 / 6 + 0.01, "chance", fontsize=7, ha="right")
 ax.set_xticks(range(3)); ax.set_xticklabels([mode_lbl[m] for m in modes])
 ax.set_ylabel("Test accuracy (6 families)"); ax.set_ylim(0, 0.8)
-ax.legend(frameon=False, fontsize=7, loc="upper right")
+ax.legend(frameon=False, fontsize=7, loc="lower center", bbox_to_anchor=(0.5, 1.0), ncol=3)
 fig.savefig(f"{FIG}/rq12_accuracy.png"); plt.close(fig)
 
 # confusion matrices (summed over seeds, row-normalised)
@@ -97,8 +98,24 @@ for ax, m in zip(axes, ["cnn", "lstm"]):
         ax2.plot(h.epoch, h.val_f1, c=C[m], lw=1)
         ax2.set_ylim(0.2, 0.7); ax2.set_ylabel("val macro-F1", color=C[m])
     ax.set_xlabel("epoch"); ax.set_ylabel("train loss", color="#666666")
+    ax.xaxis.set_major_locator(MaxNLocator(integer=True))
     ax.set_title({"cnn": "CNN", "lstm": "BiLSTM"}[m] + " (output only, all seeds)", fontsize=9)
 fig.tight_layout(); fig.savefig(f"{FIG}/training_curves.png"); plt.close(fig)
+
+# accuracy per individual model (are the 2 members of a family equally recognisable?)
+test_df = pd.read_csv("data/dataset.csv", keep_default_na=False)
+test_df = test_df[test_df.split == "test"].reset_index(drop=True)
+S["per_model_acc"] = {}
+for m in ["cnn", "lstm"]:
+    rs = runs.get((m, "output"), [])
+    if rs:
+        accs = defaultdict(list)
+        for r in rs:
+            pred = np.array(r["tests"]["test"]["pred"])
+            ok = np.array(FAM)[pred] == test_df.llm_family.values
+            for mod, v in pd.Series(ok).groupby(test_df.llm_model.values).mean().items():
+                accs[mod].append(v)
+        S["per_model_acc"][m] = {k: float(np.mean(v)) for k, v in accs.items()}
 
 # per-class F1
 fig, ax = plt.subplots(figsize=(6.2, 2.4))

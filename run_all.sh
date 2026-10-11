@@ -27,9 +27,9 @@ queue_b() {   # CNN for RQ1 / RQ2, then extra analyses
   done
   python src/baseline_tfidf.py
   OMP_NUM_THREADS=1 python src/rq2_bias.py
-  OMP_NUM_THREADS=1 python src/rq3_cross_task.py --seeds 2
+  OMP_NUM_THREADS=1 python src/rq3_cross_task.py --seeds 1
   python src/rq4_features.py
-  OMP_NUM_THREADS=1 python src/rq4_ablation.py --seeds 2
+  OMP_NUM_THREADS=1 python src/rq4_ablation.py --seeds 1
 }
 
 mkdir -p logs

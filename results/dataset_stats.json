@@ -1,0 +1,157 @@
+{
+ "per_family": [
+  {
+   "llm_family": "Claude",
+   "n": 1606,
+   "mean_words": 222.4,
+   "median_words": 207.0
+  },
+  {
+   "llm_family": "GPT",
+   "n": 1606,
+   "mean_words": 304.9,
+   "median_words": 319.0
+  },
+  {
+   "llm_family": "Google",
+   "n": 1606,
+   "mean_words": 202.7,
+   "median_words": 199.5
+  },
+  {
+   "llm_family": "Llama",
+   "n": 1606,
+   "mean_words": 296.1,
+   "median_words": 298.0
+  },
+  {
+   "llm_family": "Mistral",
+   "n": 1606,
+   "mean_words": 229.0,
+   "median_words": 218.0
+  },
+  {
+   "llm_family": "Qwen",
+   "n": 1606,
+   "mean_words": 251.8,
+   "median_words": 252.0
+  }
+ ],
+ "per_model": [
+  {
+   "llm_family": "Claude",
+   "llm_model": "claude-3-5-sonnet-20240620",
+   "n": 803,
+   "mean_words": 228.6
+  },
+  {
+   "llm_family": "Claude",
+   "llm_model": "claude-3-opus-20240229",
+   "n": 803,
+   "mean_words": 216.1
+  },
+  {
+   "llm_family": "GPT",
+   "llm_model": "gpt-4o-2024-05-13",
+   "n": 803,
+   "mean_words": 286.4
+  },
+  {
+   "llm_family": "GPT",
+   "llm_model": "gpt4_1106_preview",
+   "n": 803,
+   "mean_words": 323.3
+  },
+  {
+   "llm_family": "Google",
+   "llm_model": "gemini-pro",
+   "n": 803,
+   "mean_words": 228.9
+  },
+  {
+   "llm_family": "Google",
+   "llm_model": "gemma-7b-it",
+   "n": 803,
+   "mean_words": 176.5
+  },
+  {
+   "llm_family": "Llama",
+   "llm_model": "Meta-Llama-3-70B-Instruct",
+   "n": 803,
+   "mean_words": 299.5
+  },
+  {
+   "llm_family": "Llama",
+   "llm_model": "llama-2-70b-chat-hf",
+   "n": 803,
+   "mean_words": 292.8
+  },
+  {
+   "llm_family": "Mistral",
+   "llm_model": "Mixtral-8x7B-Instruct-v0.1",
+   "n": 803,
+   "mean_words": 239.0
+  },
+  {
+   "llm_family": "Mistral",
+   "llm_model": "mistral-large-2402",
+   "n": 803,
+   "mean_words": 219.0
+  },
+  {
+   "llm_family": "Qwen",
+   "llm_model": "Qwen1.5-72B-Chat",
+   "n": 803,
+   "mean_words": 243.2
+  },
+  {
+   "llm_family": "Qwen",
+   "llm_model": "Qwen2-72B-Instruct",
+   "n": 803,
+   "mean_words": 260.5
+  }
+ ],
+ "prompts": 803,
+ "prompt_words_mean": 28.6,
+ "prompt_words_median": 18.0,
+ "task_types": {
+  "qa": 570,
+  "writing": 148,
+  "technical": 85
+ },
+ "sources": {
+  "selfinstruct": 251,
+  "oasst": 188,
+  "koala": 156,
+  "helpful_base": 128,
+  "vicuna": 80
+ },
+ "splits_prompts": {
+  "train": 562,
+  "test": 121,
+  "val": 120
+ },
+ "splits_rows": {
+  "train": 6744,
+  "test": 1452,
+  "val": 1440
+ },
+ "split_task": {
+  "qa": {
+   "test": 76,
+   "train": 409,
+   "val": 85
+  },
+  "technical": {
+   "test": 17,
+   "train": 54,
+   "val": 14
+  },
+  "writing": {
+   "test": 28,
+   "train": 99,
+   "val": 21
+  }
+ },
+ "truncated_frac": 0.2155458696554587
+}
