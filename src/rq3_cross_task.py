@@ -1,14 +1,4 @@
-"""
-RQ3: do LLM fingerprints generalize across task types?
 
-Prompts are tagged technical / writing / qa (see data/build_dataset.py).
-For each held-out task type T:
-  cross  : train on train-split prompts NOT of type T  -> test on test-split prompts of type T
-  in-dom : train on a random sample of train-split prompts of the SAME size,
-           drawn from all types (so it does see type T)        -> same test set
-Same test examples, same amount of training data, so the gap = cost of never seeing T.
-Output-only CNN (the RQ1 setting), 3 seeds.
-"""
 import argparse
 import json
 import os
@@ -20,32 +10,89 @@ from train import run_experiment
 
 
 def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--model", default="cnn")
-    ap.add_argument("--seeds", type=int, default=3)
-    args = ap.parse_args()
+    parser = argparse.ArgumentParser()
+    parser.add_argument("--model", default="cnn")
+    parser.add_argument("--seeds", type=int, default=3)
+    args = parser.parse_args()
+
     df = pd.read_csv("data/dataset.csv", keep_default_na=False)
-    tr_all, va_all, te_all = (df[df.split == s] for s in ("train", "val", "test"))
+
+    train_all = df[df["split"] == "train"]
+    val_all = df[df["split"] == "val"]
+    test_all = df[df["split"] == "test"]
+
     os.makedirs("results/rq3", exist_ok=True)
-    out = []
-    for T in ["technical", "writing", "qa"]:
-        test = {T: te_all[te_all.task_type == T]}
-        cross_tr = tr_all[tr_all.task_type != T]
-        cross_va = va_all[va_all.task_type != T]
-        n_prompts = cross_tr.prompt_id.nunique()
+
+    results = []
+
+    # test each task type separately
+    tasks = ["technical", "writing", "qa"]
+
+    for task in tasks:
+
+        test_df = test_all[test_all["task_type"] == task]
+        test_data = {task: test_df}
+
+        # training without this task
+        cross_train = train_all[train_all["task_type"] != task]
+        cross_val = val_all[val_all["task_type"] != task]
+
+        num_prompts = cross_train["prompt_id"].nunique()
+
         for seed in range(args.seeds):
             rng = np.random.RandomState(100 + seed)
-            pids = rng.choice(tr_all.prompt_id.unique(), n_prompts, replace=False)
-            in_tr = tr_all[tr_all.prompt_id.isin(pids)]
-            for cond, tr, va in [("cross", cross_tr, cross_va), ("in_domain", in_tr, va_all)]:
-                r = run_experiment(tr, va, test, args.model, "output", seed, verbose=False)
-                t = r["tests"][T]
-                row = {"held_out": T, "cond": cond, "seed": seed, "n_train": len(tr),
-                       "acc": t["acc"], "macro_f1": t["macro_f1"],
-                       "per_class_f1": t["per_class_f1"], "n_test": t["n"]}
-                out.append(row)
-                print({k: v for k, v in row.items() if k != "per_class_f1"}, flush=True)
-                json.dump(out, open(f"results/rq3/cross_task_{args.model}.json", "w"), indent=1)
+
+            # choose the same number of prompts for comparison
+            all_ids = train_all["prompt_id"].unique()
+            chosen = rng.choice(all_ids, num_prompts, replace=False)
+
+            normal_train = train_all[train_all["prompt_id"].isin(chosen)]
+
+            for setup in ["cross", "in_domain"]:
+
+                if setup == "cross":
+                    train_df = cross_train
+                    val_df = cross_val
+
+                else:
+                    train_df = normal_train
+                    val_df = val_all
+
+                print("running", task, setup, "seed", seed)
+
+                result = run_experiment(
+                    train_df,
+                    val_df,
+                    test_data,
+                    args.model,
+                    "output",
+                    seed,
+                    verbose=False
+                )
+
+                scores = result["tests"][task]
+
+                row = {
+                    "held_out": task,
+                    "cond": setup,
+                    "seed": seed,
+                    "n_train": len(train_df),
+                    "acc": scores["acc"],
+                    "macro_f1": scores["macro_f1"],
+                    "per_class_f1": scores["per_class_f1"],
+                    "n_test": scores["n"]
+                }
+
+                results.append(row)
+
+                print("accuracy:", scores["acc"])
+                print("f1:", scores["macro_f1"])
+
+                # save after each run
+                filename = f"results/rq3/cross_task_{args.model}.json"
+
+                with open(filename, "w") as f:
+                    json.dump(results, f, indent=1)
 
 
 if __name__ == "__main__":
